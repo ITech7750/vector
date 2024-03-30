@@ -1,46 +1,54 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#define COMPLEX 0 
-#define REAL 1
-#define INT 2
+#include <stddef.h>
+#include <stdbool.h>
 
+/**
+ * Структура вектора, которая представляет собой динамический массив элементов любого типа.
+ */
 
-#include <stdlib.h>
+typedef struct Vector {
 
-// Тип вектора
-typedef struct {
-    void **data;     // Массив указателей на элементы вектора
-    int size;       // Текущий размер вектора
-    int capacity;   // Текущая емкость вектора
-    int type; // Тип 
+    size_t size; // размер вектора.
+
+    size_t capacity; // емкость вектора.
+
+    void** data; // указатель на массив элементов вектора.
+
+    //  ф-я сравнения, которая возвращает true, если два элемента равны, и false в противном случае.
+
+    bool (*equals)(const void*, const void*); 
+
+    //ф-я которая печатает указанный элемент.
+
+    void (*print)(const void*);
+
+    // ф-я сложения, которая возвращает новый элемент, являющийся суммой двух указанных элементов.
+    void* (*add)(const void*, const void*);
+
+    //ф-я скалярного произведения, которая возвращает скалярное произведение двух указанных элементов.
+    double (*scalar_product)(const void*, const void*);
 } Vector;
 
-// Тип комплексного числа
-typedef struct {
-    double real;    // Вещественная часть
-    double imag;    // Мнимая часть
-} Complex;
 
-// Создает новый вектор
-Vector *new_vector(int capacity, int type);
+Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), double (*scalar_product)(const void*, const void*));
 
-// Освобождает память, занимаемую вектором
-void free_vector(Vector *v);
 
-// Добавляет элемент в конец вектора
-void push_back(Vector *v, void *value);
+void vector_free(Vector* v);
 
-// Получает элемент вектора по индексу
-void *get(Vector *v, int index);
+bool vector_empty(const Vector* v);
 
-// Вычисляет векторное сложение двух векторов
-Vector *vector_add(Vector *v1, Vector *v2);
+size_t vector_size(const Vector* v);
 
-// Вычисляет скалярное произведение двух векторов
-Complex scalar_product(Vector *v1, Vector *v2);
+void vector_push_back(Vector* v, const void* value);
 
-// Печатает вектор
-void print_vector(Vector *v);
+void* vector_get(const Vector* v, size_t index);
 
-#endif  // VECTOR_H
+void vector_print(const Vector* v);
+
+Vector* vector_add(const Vector* v1, const Vector* v2);
+
+double vector_scalar_product(const Vector* v1, const Vector* v2);
+
+#endif

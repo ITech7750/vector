@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "vector_test.c"
 
+// это пока не работает усе, завтра допилм ))
 void print_menu() {
     printf("\n---------------------------------------------------------\n");
     printf("Добро пожаловать в калькулятор векторов!\n");
@@ -25,75 +26,57 @@ void clear_buffer() {
     while (getchar() != '\n');
 }
 
-void input_vectors(Vector **v1, Vector **v2) {
-    int size, type;
 
-    printf("Введите размер векторов: ");
+// Функции для создания векторов
+Vector* create_complex_vector() {
+    Vector* v = vector_new(10, complex_equals, print_complex, add_complex, scalar_product_complex);
+    return v;
+}
+
+Vector* create_real_vector() {
+    Vector* v = vector_new(10, real_equals, print_real, add_real, scalar_product_real);
+    return v;
+}
+
+// Функция для ввода комплексного вектора
+Vector* input_complex_vector() {
+    Vector* v;
+    v = create_complex_vector();
+    int size;
+    printf("Введите размер вектора: ");
+    scanf("%d", &size);
+    for (int i = 0; i < size; i++) {
+            Complex c;
+            printf("Введите комплексное число %d: ", i + 1);
+            scanf("%lf %lf", &c.real, &c.imag);
+            vector_push_back(v, &c);
+
+    }
+
+    return v;
+}
+
+
+// Функция для ввода вектора вручную
+Vector* input_real_vector() {
+    Vector* v;
+    v = create_real_vector();
+
+    int size;
+    printf("Введите размер вектора: ");
     scanf("%d", &size);
 
-    printf("Выберите тип векторов:\n");
-    printf("0. Комплексные числа\n");
-    printf("1. Вещественные числа\n");
-    printf("2. Целые числа\n");
+    for (int i = 0; i < size; i++) {
+        double r;
+        printf("Введите действительное число %d: ", i + 1);
+        scanf("%lf", &r);
+        vector_push_back(v, &r);
     
-    printf("Введите номер типа: ");
-    scanf("%d", &type);
-
-    *v1 = new_vector(size, type);
-    *v2 = new_vector(size, type);
-
-    if (type == INT) {
-        int value;
-        printf("Введите элементы первого вектора: ");
-        for (int i = 0; i < size; i++) {
-            scanf("%d", &value);
-            push_back(*v1, &value);
-        }
-
-        printf("Введите элементы второго вектора: ");
-        for (int i = 0; i < size; i++) {
-            scanf("%d", &value);
-            push_back(*v2, &value);
-        }
-    } else if (type == REAL) {
-        double value;
-        printf("Введите элементы первого вектора: ");
-        for (int i = 0; i < size; i++) {
-            scanf("%lf", &value);
-            double *tmp = malloc(sizeof(double));
-            *tmp = value;
-            push_back(*v1, tmp);
-        }
-        
-
-        printf("Введите элементы второго вектора: ");
-        for (int i = 0; i < size; i++) {
-            scanf("%lf", &value);
-            double *tmp = malloc(sizeof(double));
-            *tmp = value;
-            push_back(*v2, tmp);
-        }
-    } else if (type == COMPLEX) {
-        double real, imag;
-        printf("Введите элементы первого вектора (действительная и мнимая части): ");
-        for (int i = 0; i < size; i++) {
-            scanf("%lf %lf", &real, &imag);
-            Complex *value = malloc(sizeof(Complex));
-            value->real = real;
-            value->imag = imag;
-            push_back(*v1, value);
-        }
-
-        printf("Введите элементы второго вектора (действительная и мнимая части): ");
-        for (int i = 0; i < size; i++) {
-            scanf("%lf %lf", &real, &imag);
-            Complex *value = malloc(sizeof(Complex));
-            value->real = real;
-            value->imag = imag;
-            push_back(*v2, value);
-        }
     }
+
+    return v;
 }
+
 
 int main() {
     int choice;
@@ -106,47 +89,56 @@ int main() {
 
         switch (choice) {
             case 1:
-                input_vectors(&v1, &v2);
-                printf("---------------------\n");
-                printf("Первый вектор:\n");
-                print_vector(v1);
-                printf("---------------------\n");
-                printf("Второй вектор:\n");
-                print_vector(v2);
-                printf("---------------------\n");
+                int type;
+                printf("Введите тип элементов вектора (1 - комплексные, 2 - действительные): ");
+                scanf("%d", &type);
 
-                Vector *result = vector_add(v1, v2);
-                printf("Векторное сложение:\n");
-                print_vector(result);
-                free_vector(result);
+                if (type == 1) {
+                    printf("Введите вектор №1:\n");
+                    Vector *v1 = input_complex_vector();
+                    printf("Введите вектор №2:\n");
+                    Vector *v2 = input_complex_vector();
 
-                Complex product = scalar_product(v1, v2);
-                if (v1->type == COMPLEX){
-                    printf("Скалярное произведение: %.2f + i*%.2f\n", product.real, product.imag);
-                }else{
-                    printf("Скалярное произведение: %.2f\n", product);
+                    Vector *result = vector_add(v1, v2);
+                    printf("Векторное сложение:\n");
+                    print_complex(result);
+                    //free_vector(result);
+
+                } else if (type == 2) {
+                    printf("Введите вектор №1:\n");
+                    Vector *v1 = input_real_vector();
+                    printf("Введите вектор №2:\n");
+                    Vector *v2 = input_real_vector();
+
+                    Vector *result = vector_add(v1, v2);
+                    printf("Векторное сложение:\n");
+                    print_real(result);
+                    //free_vector(result);
+
+                } else {
+                    printf("Неверный тип элементов вектора!\n");
+                    return NULL;
                 }
 
-                free_vector(v1);
-                free_vector(v2);
+
+                double scalar = vector_scalar_product(v1, v2);
+                printf("Скалярное произведение : %.2f\n", scalar);
+
+                //free_vector(v1);
+                //free_vector(v2);
                 break;
             case 2:
                 printf("Запуск тестов:\n");
-
-                test_new_vector_real();
+                test_vector_complex();
                 printf("OK\n");
-                test_push_back_real();
+                test_vector_real();
                 printf("OK\n");
-                test_get_real();
-                printf("OK\n");
-                test_vector_add_real();
-                printf("OK\n");
-                //test_scalar_product_real();
-                printf("OK\n");
+                
                 break;
             case 3:
                 printf("До свидания!\n");
                 break;
+
             default:
                 printf("Неверный выбор. Пожалуйста, введите число от 1 до 3.\n");
                 break;

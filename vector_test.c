@@ -1,104 +1,131 @@
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <stdio.h>
+#include <math.h>
 #include "vector.h"
 #include "vector_impl.c"
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 
 
-void test_new_vector_real() {
-    Vector *v = new_vector(5, REAL);
 
-    assert(v->size == 0);
-    assert(v->capacity == 5);
-    assert(v->data != NULL);
-    assert(v->type == REAL);
+// Функции для работы с комплексными числами
+typedef struct Complex {
+    double real;
+    double imag;
+} Complex;
 
-    free_vector(v);
+bool complex_equals(const void* c1, const void* c2) {
+    const Complex* complex1 = c1;
+    const Complex* complex2 = c2;
+    return complex1->real == complex2->real && complex1->imag == complex2->imag;
+}
+
+void print_complex(const void* c) {
+    const Complex* complex = c;
+    printf("(%.2f + %.2fi)", complex->real, complex->imag);
+}
+
+void* add_complex(const void* c1, const void* c2) {
+    const Complex* complex1 = c1;
+    const Complex* complex2 = c2;
+    Complex* result = malloc(sizeof(Complex));
+    result->real = complex1->real + complex2->real;
+    result->imag = complex1->imag + complex2->imag;
+    return result;
+}
+
+double scalar_product_complex(const void* c1, const void* c2) {
+    const Complex* complex1 = c1;
+    const Complex* complex2 = c2;
+    return complex1->real * complex2->real + complex1->imag * complex2->imag;
+}
+
+// Функции для работы с действительными числами
+typedef double Real;
+
+bool real_equals(const void* r1, const void* r2) {
+    const Real* real1 = r1;
+    const Real* real2 = r2;
+    return *real1 == *real2;
+}
+
+void print_real(const void* r) {
+    const Real* real = r;
+    printf("%.2f", *real);
+}
+
+void* add_real(const void* r1, const void* r2) {
+    const Real* real1 = r1;
+    const Real* real2 = r2;
+    Real* result = malloc(sizeof(Real));
+    *result = *real1 + *real2;
+    return result;
+}
+
+double scalar_product_real(const void* r1, const void* r2) {
+    const Real* real1 = r1;
+    const Real* real2 = r2;
+    return *real1 * *real2;
 }
 
 
-void test_push_back_real() {
-    Vector *v = new_vector(5, REAL);
+// Тетирование
+void test_vector_complex() {
+    Complex c1 = {1.0, 2.0};
+    Complex c2 = {3.0, 4.0};
 
-    double x = 12.0;
-    double y = 15.0;
+    Vector* v = vector_new(10, complex_equals, print_complex, add_complex, scalar_product_complex);
 
-    push_back(v, &x);
-    push_back(v, &y);
+    vector_push_back(v, &c1);
+    vector_push_back(v, &c2);
 
-    assert(v->size == 2);
-    assert(v->capacity == 5);
-    assert(*(double *) v->data[0] == 12.0);
-    assert(*(double *) v->data[1] == 15.0);
+    // Проверка функции vector_size
+    assert(vector_size(v) == 2);
 
-    free_vector(v);
+    // Проверка функции vector_get
+    assert(complex_equals(vector_get(v, 0), &c1));
+    assert(complex_equals(vector_get(v, 1), &c2));
+
+    // Проверка функции vector_print
+    printf("Вектор комплексных чисел:\n");
+    vector_print(v);
+
+    // Проверка функции vector_scalar_product
+    double scalar_product = vector_scalar_product(v, v);
+    assert(fabs(scalar_product - 30.0) < 1e-6);
+
+    // Освобождение памяти, занятой вектором (ваще хз надо ли освобождать тутЪ)*
+    vector_free(v);
 }
 
+void test_vector_real() {
+    Real r1 = 1.0;
+    Real r2 = 2.0;
 
-void test_get_real() {
-    Vector *v = new_vector(5, REAL);
+    Vector* v = vector_new(10, real_equals, print_real, add_real, scalar_product_real);
 
-    double x = 12.0;
-    double y = 15.0;
+    vector_push_back(v, &r1);
+    vector_push_back(v, &r2);
 
-    push_back(v, &x);
-    push_back(v, &y);
 
-    assert(*(double *) get(v, 0) == 12.0);
-    assert(*(double *) get(v, 1) == 15.0);
+    // Проверка функции vector_size
+    assert(vector_size(v) == 2);
 
-    free_vector(v);
+    // Проверка функции vector_get
+    assert(real_equals(vector_get(v, 0), &r1));
+    assert(real_equals(vector_get(v, 1), &r2));
+
+    // Проверка функции vector_print
+    printf("Вектор действительных чисел:\n");
+    vector_print(v);
+
+    // Проверка функции vector_scalar_product
+    double scalar_product = vector_scalar_product(v, v);
+    assert(fabs(scalar_product - 5.0) < 1e-6);
+
+    // Освобождение памяти, занятой вектором (*)
+    vector_free(v);
 }
-
-
-void test_vector_add_real() {
-    Vector *v1 = new_vector(2, REAL);
-    Vector *v2 = new_vector(2, REAL);
-
-    double x1 = 12.0;
-    double x2 = 15.0;
-    double y1 = 17.0;
-    double y2 = 19.0;
-
-    push_back(v1, &x1);
-    push_back(v1, &x2);
-    push_back(v2, &y1);
-    push_back(v2, &y2);
-
-    Vector *result = vector_add(v1, v2);
-
-    assert(result->size == 2);
-    assert(result->capacity == 2);
-    assert(*(double *) result->data[0] == 29.0);
-    assert(*(double *) result->data[1] == 34.0);
-
-    free_vector(v1);
-    free_vector(v2);
-    free_vector(result);
-}
-
-
-void test_scalar_product_real() {
-    Vector *v1 = new_vector(2, REAL);
-    Vector *v2 = new_vector(2, REAL);
-
-    double x1 = 12.0;
-    double x2 = 15.0;
-    double y1 = 17.0;
-    double y2 = 19.0;
-
-    push_back(v1, &x1);
-    push_back(v1, &x2);
-    push_back(v2, &y1);
-    push_back(v2, &y2);
-
-    Complex product = scalar_product(v1, v2);
-    double tmp = product.real;
-    assert(tmp == 391.0);
-    free_vector(v1);
-    free_vector(v2);
-}
-
-
 
 
