@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/*
+Структура вектора, которая представляет собой динамический массив элементов любого типа.
+*/
 
 typedef struct Vector {
 

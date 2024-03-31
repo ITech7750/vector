@@ -1,12 +1,20 @@
 #include "vector.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), double (*scalar_product)(const void*, const void*)) {
     Vector* v = malloc(sizeof(Vector));
+    if (v == NULL) {
+        return NULL;
+    }
     v->size = 0;
     v->capacity = capacity;
     v->data = malloc(sizeof(void*) * capacity);  
+    if (v->data == NULL) {
+        free(v);
+        return NULL;
+    }
     v->equals = equals;
     v->print = print;
     v->add = add;
@@ -77,3 +85,5 @@ double vector_scalar_product(const Vector* v1, const Vector* v2) {
     }
     return result;
 }
+
+
