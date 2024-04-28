@@ -4,35 +4,26 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-/*
-Структура вектора, которая представляет собой динамический массив элементов любого типа.
-*/
 
 typedef struct Vector {
 
-    size_t size; // размер вектора.
+    size_t size;
 
-    size_t capacity; // емкость вектора.
+    size_t capacity; 
 
-    void** data; // указатель на массив элементов вектора.
-
-    //  ф-я сравнения, которая возвращает true, если два элемента равны, и false в противном случае.
+    void** data; 
 
     bool (*equals)(const void*, const void*); 
 
-    //ф-я которая печатает указанный элемент.
-
     void (*print)(const void*);
 
-    // ф-я сложения, которая возвращает новый элемент, являющийся суммой двух указанных элементов.
     void* (*add)(const void*, const void*);
 
-    //ф-я скалярного произведения, которая возвращает скалярное произведение двух указанных элементов.
-    double (*scalar_product)(const void*, const void*);
+    void* (*scalar_product)(const void*, const void*);
 } Vector;
 
 
-Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), double (*scalar_product)(const void*, const void*));
+Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), void * (*scalar_product)(const void*, const void*));
 
 
 void vector_free(Vector* v);
@@ -49,6 +40,6 @@ void vector_print(const Vector* v);
 
 Vector* vector_add(const Vector* v1, const Vector* v2);
 
-double vector_scalar_product(const Vector* v1, const Vector* v2);
+void* vector_scalar_product(const Vector* v1, const Vector* v2);
 
 #endif

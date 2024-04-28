@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 
-Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), double (*scalar_product)(const void*, const void*)) {
+Vector* vector_new(size_t capacity, bool (*equals)(const void*, const void*), void (*print)(const void*), void* (*add)(const void*, const void*), void* (*scalar_product)(const void*, const void*)) {
     Vector* v = malloc(sizeof(Vector));
     if (v == NULL) {
         return NULL;
@@ -64,7 +64,7 @@ void vector_print(const Vector* v) {
 
 Vector* vector_add(const Vector* v1, const Vector* v2) {
     if (v1->size != v2->size) {
-        fprintf(stderr, "Error: Vectors must have the same size\n");
+        fprintf(stderr, "Error: Vectors mcomplex_equalsust have the same size\n");
         exit(1);
     }
     Vector* result = vector_new(v1->size, v1->equals, v1->print, v1->add, v1->scalar_product);
@@ -74,16 +74,24 @@ Vector* vector_add(const Vector* v1, const Vector* v2) {
     return result;
 }
 
-double vector_scalar_product(const Vector* v1, const Vector* v2) {
+void* vector_scalar_product(const Vector* v1, const Vector* v2) {
     if (v1->size != v2->size) {
         fprintf(stderr, "Error: Vectors must have the same size\n");
         exit(1);
     }
-    double result = 0;
+    void* result = NULL;
     for (size_t i = 0; i < v1->size; i++) {
-        result += v1->scalar_product(v1->data[i], v2->data[i]);
+        void* partial = v1->scalar_product(v1->data[i], v2->data[i]);
+        if (result == NULL) {
+            result = partial;
+        } else {
+            void* new_result = v1->add(result, partial);
+            free(result); 
+            result = new_result;
+        }
     }
     return result;
 }
+
 
 

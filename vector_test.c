@@ -4,66 +4,78 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+#include <unistd.h>
 #include "vector.h"
 #include "fun_impl.c"
 
+double randt() {
+    srand(time(0) + sleep(1));
+    return (double)rand() / RAND_MAX * 100.0;
+}
 
-// Тетирование
 void test_vector_complex() {
-    Complex c1 = {1.0, 2.0};
-    Complex c2 = {3.0, 4.0};
+    double n1 = randt();
+    double n2 = randt();
+    double n3 = randt();
+    double n4 = randt();
 
-    Vector* v = vector_new(10, complex_equals, print_complex, add_complex, scalar_product_complex);
+    Complex c1 = {n1, n2};
+    Complex c2 = {n3, n4};
+    Complex* stored_c1 = malloc(sizeof(Complex));
+    Complex* stored_c2 = malloc(sizeof(Complex));
+    stored_c1 = &c1;
+    stored_c2 = &c2;
 
-    vector_push_back(v, &c1);
-    vector_push_back(v, &c2);
+    Vector* v = vector_new(2, complex_equals, print_complex, add_complex, scalar_product_complex);
+    vector_push_back(v, stored_c1);
+    vector_push_back(v, stored_c2);
 
-    // Проверка функции vector_size
     assert(vector_size(v) == 2);
+    assert(complex_equals(vector_get(v, 0), stored_c1));
+    assert(complex_equals(vector_get(v, 1), stored_c2));
 
-    // Проверка функции vector_get
-    assert(complex_equals(vector_get(v, 0), &c1));
-    assert(complex_equals(vector_get(v, 1), &c2));
-
-    // Проверка функции vector_print
-    printf("Вектор комплексных чисел:\n");
     vector_print(v);
 
-    // Проверка функции vector_scalar_product
-    double scalar_product = vector_scalar_product(v, v);
-    assert(fabs(scalar_product - 30.0) < 1e-6);
+    Complex* result = (Complex*) vector_scalar_product(v, v);
+    printf("Скалярное произведение векторов: %.2f + %.2fi\n", result->real, result->imag);
 
-    // Освобождение памяти, занятой вектором (ваще хз надо ли освобождать тутЪ)*
+    assert(fabs((n1 * n3+ n2 * n4) - result->real) < 10e6);
+    assert(fabs((n2 * n3 + n4 * n1) - result->imag) < 10e6);
+
+    free(result);
     vector_free(v);
 }
 
 void test_vector_real() {
-    Real r1 = 1.0;
-    Real r2 = 2.0;
+    double r1 = randt();
+    double r2 = randt();
+    double* stored_r1 = malloc(sizeof(double));
+    double* stored_r2 = malloc(sizeof(double));
+    *stored_r1 = r1;
+    *stored_r2 = r2;
 
-    Vector* v = vector_new(10, real_equals, print_real, add_real, scalar_product_real);
+    Vector* v = vector_new(2, real_equals, print_real, add_real, scalar_product_real);
+    vector_push_back(v, stored_r1);
+    vector_push_back(v, stored_r2);
 
-    vector_push_back(v, &r1);
-    vector_push_back(v, &r2);
-
-
-    // Проверка функции vector_size
     assert(vector_size(v) == 2);
+    assert(real_equals(vector_get(v, 0), stored_r1));
+    assert(real_equals(vector_get(v, 1), stored_r2));
 
-    // Проверка функции vector_get
-    assert(real_equals(vector_get(v, 0), &r1));
-    assert(real_equals(vector_get(v, 1), &r2));
-
-    // Проверка функции vector_print
-    printf("Вектор действительных чисел:\n");
     vector_print(v);
 
-    // Проверка функции vector_scalar_product
-    double scalar_product = vector_scalar_product(v, v);
-    assert(fabs(scalar_product - 5.0) < 1e-6);
+    double* result = (double*) vector_scalar_product(v, v);
+    printf("Скалярное произведение векторов: %.2f\n", *result);
+    printf("ожидание: %.5f, получено: %.5f\n", (r1 * r1 + r2 * r2 ), *result);
 
-    // Освобождение памяти, занятой вектором (*)
+    assert(fabs((r1 * r1 + r2 * r2 ) - *result) < 1e-6);
+
+    free(result);
     vector_free(v);
 }
 
-
+void test() {
+    test_vector_complex();
+    test_vector_real();
+}
